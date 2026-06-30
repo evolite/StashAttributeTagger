@@ -6,25 +6,36 @@ from stashapi.stashapp import StashInterface
 
 PAGE_SIZE = 100
 
-# gender enum -> noun used in gendered tag names. Anything else (trans, intersex,
-# non-binary, unset) is skipped entirely.
-GENDER_NOUN = {"FEMALE": "Woman", "MALE": "Man"}
+# gender enum -> (noun for gendered tags or None, identity tag or None).
+# Genders absent from this map (INTERSEX, unset) are skipped entirely.
+# An identity tag != None means the performer is trans/non-binary.
+GENDER = {
+    "FEMALE": ("Woman", None),
+    "MALE": ("Man", None),
+    "TRANSGENDER_FEMALE": ("Woman", "Transgender (Female)"),
+    "TRANSGENDER_MALE": ("Man", "Transgender (Male)"),
+    "NON_BINARY": (None, "Transgender (Non-Binary)"),
+}
 
-# normalized ethnicity value -> (female tag name, male tag name)
+# normalized ethnicity value -> tag names per identity. "trans" is optional;
+# StashDB only has trans Race tags for some ethnicities (and they're uneven, e.g.
+# "Black Trans" but "White Trans Woman"). Names match StashDB's Race category.
 ETHNICITY = {
-    "caucasian": ("White Woman", "White Man"),
-    "white": ("White Woman", "White Man"),
-    "black": ("Black Woman", "Black Man"),
-    "african american": ("Black Woman", "Black Man"),
-    "asian": ("Asian Woman", "Asian Man"),
-    "latin": ("Latina Woman", "Latino Man"),
-    "latina": ("Latina Woman", "Latino Man"),
-    "hispanic": ("Latina Woman", "Latino Man"),
-    "middle eastern": ("Middle Eastern Woman", "Middle Eastern Man"),
-    "middle-eastern": ("Middle Eastern Woman", "Middle Eastern Man"),
-    "mixed": ("Mixed Race Woman", "Mixed Race Man"),
-    "mixed race": ("Mixed Race Woman", "Mixed Race Man"),
-    "indian": ("Indian", "Indian"),  # gender-neutral tag
+    "caucasian": {"woman": "White Woman", "man": "White Man", "trans": "White Trans Woman"},
+    "white": {"woman": "White Woman", "man": "White Man", "trans": "White Trans Woman"},
+    "black": {"woman": "Black Woman", "man": "Black Man", "trans": "Black Trans"},
+    "african american": {"woman": "Black Woman", "man": "Black Man", "trans": "Black Trans"},
+    "asian": {"woman": "Asian Woman", "man": "Asian Man", "trans": "Asian Trans"},
+    "latin": {"woman": "Latina Woman", "man": "Latino Man", "trans": "Latina Trans"},
+    "latina": {"woman": "Latina Woman", "man": "Latino Man", "trans": "Latina Trans"},
+    "hispanic": {"woman": "Latina Woman", "man": "Latino Man", "trans": "Latina Trans"},
+    "middle eastern": {"woman": "Middle Eastern Woman", "man": "Middle Eastern Man"},
+    "middle-eastern": {"woman": "Middle Eastern Woman", "man": "Middle Eastern Man"},
+    "mixed": {"woman": "Mixed Race Woman", "man": "Mixed Race Man", "trans": "Mixed Race Trans"},
+    "mixed race": {"woman": "Mixed Race Woman", "man": "Mixed Race Man", "trans": "Mixed Race Trans"},
+    "indian": {"woman": "South Asian Woman", "man": "South Asian Man"},
+    "south asian": {"woman": "South Asian Woman", "man": "South Asian Man"},
+    "pakistani": {"woman": "South Asian Woman", "man": "South Asian Man"},
 }
 
 # noun -> (short_below, tall_at_or_above) cm thresholds. Men run taller, so the
@@ -60,37 +71,66 @@ def _height_base(height_cm, noun: str) -> str | None:
     return "Average Height"
 
 
-def performer_target_tag_names(performer: dict) -> list[str]:
-    """Existing-tag NAMES this performer's attributes map to. [] if gender skipped."""
-    noun = GENDER_NOUN.get(performer.get("gender"))
-    if noun is None:
+def performer_target_tag_groups(performer: dict) -> list[list[str]]:
+    """Ordered candidate groups for a performer. For each group the caller assigns
+    the FIRST tag name that exists in the library (so trans Race tags fall back to
+    the plain Woman/Man tag). Pure; no I/O. [] if the gender is skipped."""
+    g = GENDER.get(performer.get("gender"))
+    if g is None:
         return []
+    noun, identity_tag = g
+    is_trans = identity_tag is not None
+    groups: list[list[str]] = []
 
-    names: list[str] = []
+    if identity_tag:
+        groups.append([identity_tag])
 
     eth = ETHNICITY.get(_norm(performer.get("ethnicity")))
     if eth:
-        names.append(eth[0] if noun == "Woman" else eth[1])
+        cands: list[str] = []
+        if is_trans and "trans" in eth:
+            cands.append(eth["trans"])
+        if noun == "Woman":
+            cands.append(eth["woman"])
+        elif noun == "Man":
+            cands.append(eth["man"])
+        if cands:
+            groups.append(cands)
 
     eye = EYE_COLOR.get(_norm(performer.get("eye_color")))
     if eye:
-        names.append(eye)
+        groups.append([eye])
 
-    base = _height_base(performer.get("height_cm"), noun)
-    if base:
-        names.append(f"{base} {noun}")
+    if noun:  # height tags are gendered; non-binary (no noun) gets none
+        base = _height_base(performer.get("height_cm"), noun)
+        if base:
+            groups.append([f"{base} {noun}"])
 
-    return names
+    return groups
+
+
+def choose_existing(groups: list[list[str]], name_to_id: dict[str, str]) -> list[str]:
+    """First existing tag name in each candidate group."""
+    chosen: list[str] = []
+    for group in groups:
+        for name in group:
+            if name in name_to_id:
+                chosen.append(name)
+                break
+    return chosen
 
 
 def all_candidate_tag_names() -> set[str]:
     """The fixed universe of tag names the mappings can ever produce."""
     names: set[str] = set(EYE_COLOR.values())
-    for female, male in ETHNICITY.values():
-        names.update((female, male))
+    for m in ETHNICITY.values():
+        names.update(m.values())
     for base in ("Short", "Average Height", "Tall"):
         names.add(f"{base} Woman")
         names.add(f"{base} Man")
+    for _noun, identity_tag in GENDER.values():
+        if identity_tag:
+            names.add(identity_tag)
     return names
 
 
@@ -135,11 +175,12 @@ def tag_performers(stash: StashInterface, name_to_id: dict[str, str], dry_run: b
             break
 
         for p in performers:
-            target_ids = {name_to_id[n] for n in performer_target_tag_names(p) if n in name_to_id}
+            chosen = choose_existing(performer_target_tag_groups(p), name_to_id)
+            target_ids = {name_to_id[n] for n in chosen}
             existing_ids = {t["id"] for t in p.get("tags", [])}
             to_add = target_ids - existing_ids
             if to_add:
-                add_names = [n for n in performer_target_tag_names(p) if name_to_id.get(n) in to_add]
+                add_names = [n for n in chosen if name_to_id[n] in to_add]
                 if dry_run:
                     log.info(f"[dry-run] Performer {p['id']} ({p['name']}): would add {add_names}")
                 else:
