@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.1.1] - 2026-06-30
+
+### Features
+
+- StashDB-exact height bands (adds Tiny Woman) + document attribute rationale
+
 ## [0.1.0] - 2026-06-30
 
 ### Features
