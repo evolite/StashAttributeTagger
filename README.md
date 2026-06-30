@@ -17,6 +17,7 @@ importer or create the tags yourself first.
 | | Latin / Latina / Hispanic | Latina Woman / Latino Man |
 | | Middle Eastern | Middle Eastern Woman / Middle Eastern Man |
 | | Mixed / Mixed Race | Mixed Race Woman / Mixed Race Man |
+| | Indian | Indian (gender-neutral) |
 | Eye color | Brown / Green / Grey / Hazel / Blue | Brown Eyes / … / Blue Eyes (gender-neutral) |
 | Height (Woman) | `< 160 / 160–174 / >= 175 cm` | Short Woman / Average Height Woman / Tall Woman |
 | Height (Man) | `< 170 / 170–184 / >= 185 cm` | Short Man / Average Height Man / Tall Man |
@@ -25,8 +26,9 @@ Height bands are gender-specific (men run taller on average), so the same height
 can land in different bands — e.g. 178 cm is a Tall Woman but an Average Height Man.
 
 Performers whose gender is **not** FEMALE or MALE (trans, intersex, non-binary,
-unset) are skipped — all the gendered tags say "Woman" / "Man". Unmapped
-ethnicities (e.g. Indian) simply produce no ethnicity tag.
+unset) are skipped — all the *gendered* tags say "Woman" / "Man". (Indian is the
+one gender-neutral ethnicity tag.) Unmapped ethnicities simply produce no
+ethnicity tag.
 
 The mappings are hardcoded in `plugin/performerAttributeTagger.py`; edit the
 `ETHNICITY`, `EYE_COLOR`, and `GENDER_NOUN` constants to adjust them.

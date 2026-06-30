@@ -24,6 +24,7 @@ ETHNICITY = {
     "middle-eastern": ("Middle Eastern Woman", "Middle Eastern Man"),
     "mixed": ("Mixed Race Woman", "Mixed Race Man"),
     "mixed race": ("Mixed Race Woman", "Mixed Race Man"),
+    "indian": ("Indian", "Indian"),  # gender-neutral tag
 }
 
 # noun -> (short_below, tall_at_or_above) cm thresholds. Men run taller, so the

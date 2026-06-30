@@ -36,9 +36,13 @@ assert performer_target_tag_names(p("MALE", height_cm=185)) == ["Tall Man"]
 assert performer_target_tag_names(p("FEMALE", height_cm=178)) == ["Tall Woman"]
 assert performer_target_tag_names(p("MALE", height_cm=178)) == ["Average Height Man"]
 
-# unmapped ethnicity (indian) -> no ethnicity tag, other attrs still apply
+# indian is a gender-neutral ethnicity tag (same for men and women)
+assert performer_target_tag_names(p("MALE", "Indian", "Brown", 175)) == ["Indian", "Brown Eyes", "Average Height Man"]
+assert performer_target_tag_names(p("FEMALE", "Indian", "Brown", 165)) == ["Indian", "Brown Eyes", "Average Height Woman"]
+
+# genuinely unmapped ethnicity -> no ethnicity tag, other attrs still apply
 assert performer_target_tag_names(
-    p("MALE", "Indian", "Brown", 175)
+    p("MALE", "Pacific Islander", "Brown", 175)
 ) == ["Brown Eyes", "Average Height Man"]
 
 # empty / missing attributes -> omitted, no crash
