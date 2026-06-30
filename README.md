@@ -19,11 +19,12 @@ importer or create the tags yourself first.
 | | Mixed / Mixed Race | Mixed Race Woman / Mixed Race Man |
 | | Indian / South Asian / Pakistani | South Asian Woman / South Asian Man |
 | Eye color | Brown / Green / Grey / Hazel / Blue | Brown Eyes / … / Blue Eyes (gender-neutral) |
-| Height (Woman) | `< 160 / 160–174 / >= 175 cm` | Short Woman / Average Height Woman / Tall Woman |
-| Height (Man) | `< 170 / 170–184 / >= 185 cm` | Short Man / Average Height Man / Tall Man |
+| Height (Woman) | `< 155 / 155–164 / 165–174 / >= 175 cm` | Tiny Woman / Short Woman / Average Height Woman / Tall Woman |
+| Height (Man) | `< 170 / 170–181 / >= 182 cm` | Short Man / Average Height Man / Tall Man |
 
-Tag names follow [StashDB](https://stashdb.org)'s **Race**, **Height**, **Face**,
-and **Orientation** categories, so they match tags imported from StashDB.
+Tag names and height cutoffs follow [StashDB](https://stashdb.org)'s **Race**,
+**Height**, **Face**, and **Orientation** categories, so they match tags imported
+from StashDB. (StashDB has a `Tiny Woman` tier but no "Tiny Man".)
 
 Height bands are gender-specific (men run taller on average), so the same height
 can land in different bands — e.g. 178 cm is a Tall Woman but an Average Height Man.
@@ -46,7 +47,20 @@ and gender-**unset** performers are skipped. Unmapped ethnicities simply produce
 no ethnicity tag.
 
 The mappings are hardcoded in `plugin/performerAttributeTagger.py`; edit the
-`ETHNICITY`, `EYE_COLOR`, and `GENDER_NOUN` constants to adjust them.
+`ETHNICITY`, `EYE_COLOR`, `HEIGHT_BANDS`, and `GENDER` constants to adjust them.
+
+## Why only ethnicity, eye color, height, and gender?
+
+These are **stable, intrinsic** attributes — for an adult performer they
+essentially never change, so a tag derived from them stays correct for the life
+of the performer. That makes them safe to auto-tag once and trust.
+
+We deliberately **don't** tag mutable attributes like hair color, breast size /
+augmentation, body type, weight, tattoos, or piercings. In this industry those
+change constantly — performers dye their hair, get implants, gain or lose weight,
+add ink — so auto-derived tags for them would go stale fast and quietly become
+wrong. Tag those by hand (or per-scene) where the value reflects a point in time,
+not the performer's permanent identity.
 
 ## Install
 

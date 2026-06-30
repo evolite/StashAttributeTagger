@@ -51,18 +51,26 @@ assert tags(p("TRANSGENDER_FEMALE", "Middle Eastern", "Brown", 165)) == [
 assert tags(p("MALE", "Indian", "Brown", 175)) == ["South Asian Man", "Brown Eyes", "Average Height Man"]
 assert tags(p("FEMALE", "Pakistani", "Brown", 165)) == ["South Asian Woman", "Brown Eyes", "Average Height Woman"]
 
-# --- gender-specific height boundaries ---
-assert tags(p("FEMALE", height_cm=159)) == ["Short Woman"]
-assert tags(p("FEMALE", height_cm=160)) == ["Average Height Woman"]
+# --- gender-specific height boundaries (StashDB bands) ---
+# women: <155 tiny, 155-164 short, 165-174 average, >=175 tall
+assert tags(p("FEMALE", height_cm=154)) == ["Tiny Woman"]
+assert tags(p("FEMALE", height_cm=155)) == ["Short Woman"]
+assert tags(p("FEMALE", height_cm=164)) == ["Short Woman"]
+assert tags(p("FEMALE", height_cm=165)) == ["Average Height Woman"]
 assert tags(p("FEMALE", height_cm=174)) == ["Average Height Woman"]
 assert tags(p("FEMALE", height_cm=175)) == ["Tall Woman"]
+# men: <170 short, 170-181 average, >=182 tall (no "Tiny Man")
+assert tags(p("MALE", height_cm=149)) == ["Short Man"]
 assert tags(p("MALE", height_cm=169)) == ["Short Man"]
 assert tags(p("MALE", height_cm=170)) == ["Average Height Man"]
-assert tags(p("MALE", height_cm=184)) == ["Average Height Man"]
-assert tags(p("MALE", height_cm=185)) == ["Tall Man"]
+assert tags(p("MALE", height_cm=181)) == ["Average Height Man"]
+assert tags(p("MALE", height_cm=182)) == ["Tall Man"]
 # same height, different band by gender
 assert tags(p("FEMALE", height_cm=178)) == ["Tall Woman"]
 assert tags(p("MALE", height_cm=178)) == ["Average Height Man"]
+# "Tiny Man" is not a StashDB tag, so it must not be in the candidate universe
+assert "Tiny Man" not in all_candidate_tag_names()
+assert "Tiny Woman" in all_candidate_tag_names()
 
 # --- edge cases ---
 assert tags(p("MALE", "Pacific Islander", "Brown", 175)) == ["Brown Eyes", "Average Height Man"]  # unmapped ethnicity

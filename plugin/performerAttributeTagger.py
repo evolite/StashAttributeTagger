@@ -38,11 +38,12 @@ ETHNICITY = {
     "pakistani": {"woman": "South Asian Woman", "man": "South Asian Man"},
 }
 
-# noun -> (short_below, tall_at_or_above) cm thresholds. Men run taller, so the
-# bands are shifted up; between the two values is "Average Height".
-HEIGHT_THRESHOLDS = {
-    "Woman": (160, 175),
-    "Man": (170, 185),
+# noun -> ordered height bands (upper_exclusive_cm, base). First band whose
+# ceiling the height is under wins; ceiling None = no upper bound (tallest).
+# Cutoffs follow StashDB's Height category (women have a "Tiny" tier, men don't).
+HEIGHT_BANDS = {
+    "Woman": [(155, "Tiny"), (165, "Short"), (175, "Average Height"), (None, "Tall")],
+    "Man": [(170, "Short"), (182, "Average Height"), (None, "Tall")],
 }
 
 # normalized eye color value -> tag name (gender-neutral)
@@ -63,12 +64,10 @@ def _norm(value) -> str:
 def _height_base(height_cm, noun: str) -> str | None:
     if not height_cm:
         return None
-    short_below, tall_at = HEIGHT_THRESHOLDS[noun]
-    if height_cm < short_below:
-        return "Short"
-    if height_cm >= tall_at:
-        return "Tall"
-    return "Average Height"
+    for ceiling, base in HEIGHT_BANDS[noun]:
+        if ceiling is None or height_cm < ceiling:
+            return base
+    return None  # unreachable: last band has ceiling None
 
 
 def performer_target_tag_groups(performer: dict) -> list[list[str]]:
@@ -125,9 +124,9 @@ def all_candidate_tag_names() -> set[str]:
     names: set[str] = set(EYE_COLOR.values())
     for m in ETHNICITY.values():
         names.update(m.values())
-    for base in ("Short", "Average Height", "Tall"):
-        names.add(f"{base} Woman")
-        names.add(f"{base} Man")
+    for noun, bands in HEIGHT_BANDS.items():
+        for _ceiling, base in bands:
+            names.add(f"{base} {noun}")
     for _noun, identity_tag in GENDER.values():
         if identity_tag:
             names.add(identity_tag)
