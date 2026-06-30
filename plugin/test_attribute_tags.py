@@ -11,7 +11,7 @@ assert performer_target_tag_names(
     p("FEMALE", "Caucasian", "Brown", 155)
 ) == ["White Woman", "Brown Eyes", "Short Woman"]
 
-# male: latino + blue + tall
+# male: latino + blue + tall (>=185 for men)
 assert performer_target_tag_names(
     p("MALE", "Latin", "Blue", 185)
 ) == ["Latino Man", "Blue Eyes", "Tall Man"]
@@ -21,11 +21,20 @@ assert performer_target_tag_names(p("TRANSGENDER_FEMALE", "Caucasian", "Blue", 1
 assert performer_target_tag_names(p(None, "Caucasian", "Brown", 165)) == []
 assert performer_target_tag_names(p("NON_BINARY", "Asian", "Green", 170)) == []
 
-# height boundaries: <160 short, 160-179 average, >=180 tall
+# height boundaries are gender-specific.
+# women: <160 short, 160-174 average, >=175 tall
 assert performer_target_tag_names(p("FEMALE", height_cm=159)) == ["Short Woman"]
 assert performer_target_tag_names(p("FEMALE", height_cm=160)) == ["Average Height Woman"]
-assert performer_target_tag_names(p("FEMALE", height_cm=179)) == ["Average Height Woman"]
-assert performer_target_tag_names(p("MALE", height_cm=180)) == ["Tall Man"]
+assert performer_target_tag_names(p("FEMALE", height_cm=174)) == ["Average Height Woman"]
+assert performer_target_tag_names(p("FEMALE", height_cm=175)) == ["Tall Woman"]
+# men: <170 short, 170-184 average, >=185 tall
+assert performer_target_tag_names(p("MALE", height_cm=169)) == ["Short Man"]
+assert performer_target_tag_names(p("MALE", height_cm=170)) == ["Average Height Man"]
+assert performer_target_tag_names(p("MALE", height_cm=184)) == ["Average Height Man"]
+assert performer_target_tag_names(p("MALE", height_cm=185)) == ["Tall Man"]
+# same height, different band by gender: 178cm woman is Tall, man is Average
+assert performer_target_tag_names(p("FEMALE", height_cm=178)) == ["Tall Woman"]
+assert performer_target_tag_names(p("MALE", height_cm=178)) == ["Average Height Man"]
 
 # unmapped ethnicity (indian) -> no ethnicity tag, other attrs still apply
 assert performer_target_tag_names(

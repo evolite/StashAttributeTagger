@@ -26,6 +26,13 @@ ETHNICITY = {
     "mixed race": ("Mixed Race Woman", "Mixed Race Man"),
 }
 
+# noun -> (short_below, tall_at_or_above) cm thresholds. Men run taller, so the
+# bands are shifted up; between the two values is "Average Height".
+HEIGHT_THRESHOLDS = {
+    "Woman": (160, 175),
+    "Man": (170, 185),
+}
+
 # normalized eye color value -> tag name (gender-neutral)
 EYE_COLOR = {
     "brown": "Brown Eyes",
@@ -41,14 +48,15 @@ def _norm(value) -> str:
     return (value or "").strip().lower()
 
 
-def _height_base(height_cm) -> str | None:
+def _height_base(height_cm, noun: str) -> str | None:
     if not height_cm:
         return None
-    if height_cm < 160:
+    short_below, tall_at = HEIGHT_THRESHOLDS[noun]
+    if height_cm < short_below:
         return "Short"
-    if height_cm < 180:
-        return "Average Height"
-    return "Tall"
+    if height_cm >= tall_at:
+        return "Tall"
+    return "Average Height"
 
 
 def performer_target_tag_names(performer: dict) -> list[str]:
@@ -67,7 +75,7 @@ def performer_target_tag_names(performer: dict) -> list[str]:
     if eye:
         names.append(eye)
 
-    base = _height_base(performer.get("height_cm"))
+    base = _height_base(performer.get("height_cm"), noun)
     if base:
         names.append(f"{base} {noun}")
 

@@ -18,9 +18,11 @@ importer or create the tags yourself first.
 | | Middle Eastern | Middle Eastern Woman / Middle Eastern Man |
 | | Mixed / Mixed Race | Mixed Race Woman / Mixed Race Man |
 | Eye color | Brown / Green / Grey / Hazel / Blue | Brown Eyes / … / Blue Eyes (gender-neutral) |
-| Height | `< 160 cm` | Short Woman / Short Man |
-| | `160–179 cm` | Average Height Woman / Average Height Man |
-| | `>= 180 cm` | Tall Woman / Tall Man |
+| Height (Woman) | `< 160 / 160–174 / >= 175 cm` | Short Woman / Average Height Woman / Tall Woman |
+| Height (Man) | `< 170 / 170–184 / >= 185 cm` | Short Man / Average Height Man / Tall Man |
+
+Height bands are gender-specific (men run taller on average), so the same height
+can land in different bands — e.g. 178 cm is a Tall Woman but an Average Height Man.
 
 Performers whose gender is **not** FEMALE or MALE (trans, intersex, non-binary,
 unset) are skipped — all the gendered tags say "Woman" / "Man". Unmapped
