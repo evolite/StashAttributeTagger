@@ -59,7 +59,7 @@ jobs:
               for root, dirs, files in os.walk('plugin'):
                   dirs[:] = [d for d in dirs if d != '__pycache__']
                   for f in files:
-                      if f.startswith('test_') or f.endswith('.pyc'):
+                      if f == 'manifest' or f.startswith('test_') or f.endswith('.pyc'):
                           continue
                       path = os.path.join(root, f)
                       zf.write(path, os.path.relpath(path, 'plugin'))
