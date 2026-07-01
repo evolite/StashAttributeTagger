@@ -1,6 +1,6 @@
 name: Performer Attribute Tagger
 description: Adds existing tags to performers based on ethnicity, eye color, and height. Never creates tags.
-version: 0.1.1
+version: 0.2.0
 exec:
   - python3
   - "{pluginDir}/performerAttributeTagger.py"
