@@ -14,3 +14,8 @@ tasks:
     description: "Preview which performer tags would be added."
     defaultArgs:
       dry_run: true
+hooks:
+  - name: "Tag Attributes on New/Updated Performer"
+    description: "Adds matching existing tags to a performer whenever it is created or updated."
+    triggeredBy:
+      - Performer.Update.Post

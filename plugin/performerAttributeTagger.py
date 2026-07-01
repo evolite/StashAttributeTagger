@@ -204,6 +204,30 @@ def tag_performers(stash: StashInterface, name_to_id: dict[str, str], dry_run: b
     log.info(f"Done. {action} {tagged_count} performer(s).")
 
 
+def tag_one_performer(stash, performer_id, name_to_id, dry_run):
+    """Add matching attribute tags to a single performer (Performer.Update.Post hook)."""
+    p = stash.find_performer(
+        performer_id, fragment="id name gender ethnicity eye_color height_cm tags { id }"
+    )
+    if not p:
+        return
+    chosen = choose_existing(performer_target_tag_groups(p), name_to_id)
+    target_ids = {name_to_id[n] for n in chosen}
+    to_add = target_ids - {t["id"] for t in p.get("tags", [])}
+    if not to_add:
+        return
+    add_names = [n for n in chosen if name_to_id[n] in to_add]
+    if dry_run:
+        log.info(f"[dry-run] Performer {p['id']} ({p['name']}): would add {add_names}")
+    else:
+        # ponytail: our own update re-fires the hook, but the second pass finds
+        # nothing to add and makes no update, so it terminates after one no-op.
+        stash.update_performers(
+            {"ids": [p["id"]], "tag_ids": {"mode": "ADD", "ids": list(to_add)}}
+        )
+        log.info(f"Performer {p['id']} ({p['name']}): added {add_names}")
+
+
 def main() -> None:
     payload = json.loads(sys.stdin.read())
     stash = StashInterface(payload["server_connection"])
@@ -215,6 +239,11 @@ def main() -> None:
     name_to_id = resolve_existing_tag_ids(stash, all_candidate_tag_names())
     if not name_to_id:
         log.warning("None of the mapped tags exist in Stash. Create them first; nothing to do.")
+        return
+
+    hook_context = payload.get("args", {}).get("hookContext")
+    if hook_context:
+        tag_one_performer(stash, str(hook_context["id"]), name_to_id, dry_run)
         return
 
     tag_performers(stash, name_to_id, dry_run)
