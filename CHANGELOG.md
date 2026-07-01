@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.2.1] - 2026-07-01
+
+### Bug Fixes
+
+- Exclude manifest from release zip so package updates work
+
 ## [0.2.0] - 2026-07-01
 
 ### Features
