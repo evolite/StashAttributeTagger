@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.2.2] - 2026-07-09
+
+### Bug Fixes
+
+- Match aliased tags so attribute tags aren't skipped
+
 ## [0.2.1] - 2026-07-01
 
 ### Bug Fixes
