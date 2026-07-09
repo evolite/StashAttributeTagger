@@ -135,7 +135,10 @@ def all_candidate_tag_names() -> set[str]:
 
 FIND_TAG = """
 query ($name: String!) {
-  findTags(tag_filter: { name: { value: $name, modifier: EQUALS } }) {
+  byName: findTags(tag_filter: { name: { value: $name, modifier: EQUALS } }) {
+    tags { id name }
+  }
+  byAlias: findTags(tag_filter: { aliases: { value: $name, modifier: EQUALS } }) {
     tags { id name }
   }
 }
@@ -143,11 +146,13 @@ query ($name: String!) {
 
 
 def resolve_existing_tag_ids(stash: StashInterface, names: set[str]) -> dict[str, str]:
-    """Map each candidate tag name to its id. Names with no match are omitted."""
+    """Map each candidate tag name to its id, matching the name or any alias.
+    Names with no match are omitted."""
     name_to_id: dict[str, str] = {}
     for name in sorted(names):
-        result = stash.call_GQL(FIND_TAG, {"name": name})
-        tags = (result or {}).get("findTags", {}).get("tags", [])
+        result = stash.call_GQL(FIND_TAG, {"name": name}) or {}
+        tags = (result.get("byName") or {}).get("tags", []) \
+            or (result.get("byAlias") or {}).get("tags", [])
         if tags:
             name_to_id[name] = tags[0]["id"]
     missing = names - name_to_id.keys()
