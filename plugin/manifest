@@ -2,8 +2,8 @@ id: performerAttributeTagger
 name: Performer Attribute Tagger
 metadata:
   description: Adds existing tags to performers based on ethnicity, eye color, and height. Never creates tags.
-version: 0.2.2
-date: "2026-07-09 12:27:05"
+version: 0.2.3
+date: "2026-10-09 21:03:27"
 requires: []
 source_repository: ""
 files:
