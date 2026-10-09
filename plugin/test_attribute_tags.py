@@ -1,8 +1,8 @@
 """Self-check for the pure mapping logic. Run: python3 plugin/test_attribute_tags.py"""
 from performerAttributeTagger import (
-    performer_target_tag_groups,
-    choose_existing,
     all_candidate_tag_names,
+    choose_existing,
+    performer_target_tag_groups,
 )
 
 # fake library where every candidate tag exists

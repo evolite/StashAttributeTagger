@@ -1,7 +1,7 @@
 import json
 import sys
 
-import stashapi.log as log
+from stashapi import log
 from stashapi.stashapp import StashInterface
 
 PAGE_SIZE = 100
